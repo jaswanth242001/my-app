@@ -1,3 +1,41 @@
+# my-app
+
+A small Vite + React app scaffolded in this workspace.
+
+## Requirements
+
+- Node.js 16+ or compatible
+
+## Install
+
+```bash
+npm install
+```
+
+## Run (development)
+
+```bash
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Project structure
+
+- `index.html` — app entry
+- `src/` — React source files
+- `public/` — static assets
+
+---
+
+## Template notes
+
+The original template information is preserved below for reference.
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
