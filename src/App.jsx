@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NavBar from "./components/NavBar";
+import ChatbotWidget from "./components/ChatbotWidget";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -29,6 +30,7 @@ function App() {
           />
         </Routes>
       </main>
+      {isAuthenticated && <ChatbotWidget />}
     </div>
   );
 }
