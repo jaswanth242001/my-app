@@ -1,34 +1,68 @@
 const BASE_URL = "/api";
 
-async function request(path, { method = "GET", body, token, headers = {} } = {}) {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+// Registered by AuthContext so the API layer can react to an expired/invalid
+// session (401) without importing the context here (would create a cycle).
+let unauthorizedHandler = null;
+export function setUnauthorizedHandler(fn) {
+  unauthorizedHandler = fn;
+}
 
-  const text = await response.text();
-  let data = null;
-  if (text) {
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function request(
+  path,
+  { method = "GET", body, token, headers = {}, retries = method === "GET" ? 1 : 0 } = {}
+) {
+  let attempt = 0;
+
+  while (true) {
+    let response;
     try {
-      data = JSON.parse(text);
-    } catch {
-      data = text;
+      response = await fetch(`${BASE_URL}${path}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...headers,
+        },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+    } catch (networkError) {
+      if (attempt < retries) {
+        attempt += 1;
+        await delay(300 * attempt);
+        continue;
+      }
+      throw new Error(networkError.message || "Network error. Please check your connection.", {
+        cause: networkError,
+      });
     }
-  }
 
-  if (!response.ok) {
-    const message =
-      (data && (data.message || data.title || data.error)) ||
-      `Request failed (${response.status})`;
-    throw new Error(message);
-  }
+    const text = await response.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = text;
+      }
+    }
 
-  return data;
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
+
+    if (!response.ok) {
+      const message =
+        (data && (data.message || data.title || data.error)) ||
+        `Request failed (${response.status})`;
+      throw new Error(message);
+    }
+
+    return data;
+  }
 }
 
 export const api = {

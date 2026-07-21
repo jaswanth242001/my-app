@@ -1,16 +1,23 @@
-import { createContext, useContext, useState, useCallback } from "react";
-import { api } from "../api/client";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { api, setUnauthorizedHandler } from "../api/client";
 
 const AuthContext = createContext(null);
+const TOKEN_STORAGE_KEY = "noteflow:auth-token";
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [user, setUser] = useState(null);
 
   const login = useCallback(async (email, password) => {
     const data = await api.post("/Auth/login", { email, password });
-    setToken(data?.token ?? null);
+    const nextToken = data?.token ?? null;
+    setToken(nextToken);
     setUser(data?.user ?? null);
+    if (nextToken) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
     return data;
   }, []);
 
@@ -36,8 +43,20 @@ export function AuthProvider({ children }) {
     } finally {
       setToken(null);
       setUser(null);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
     }
   }, [token]);
+
+  // Let the API client force a logout whenever a request comes back 401
+  // (expired/invalid session), without creating an import cycle.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
 
   return (
     <AuthContext.Provider
