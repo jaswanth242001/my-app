@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-function NoteFormModal({ initialNote, onSave, onClose, saving }) {
+// Note: the parent passes a `key` prop keyed by note id/"new" so this
+// component remounts (and re-runs these initializers) whenever the note
+// being edited changes, instead of syncing state via a useEffect.
+function NoteFormModal({ initialNote, categories = [], onSave, onClose, saving }) {
   const [title, setTitle] = useState(initialNote?.title ?? "");
   const [content, setContent] = useState(initialNote?.content ?? "");
+  const [categoryId, setCategoryId] = useState(initialNote?.categoryId ?? "");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    setTitle(initialNote?.title ?? "");
-    setContent(initialNote?.content ?? "");
-  }, [initialNote]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +17,11 @@ function NoteFormModal({ initialNote, onSave, onClose, saving }) {
     }
     setError("");
     try {
-      await onSave({ title: title.trim(), content: content.trim() });
+      await onSave({
+        title: title.trim(),
+        content: content.trim(),
+        categoryId: categoryId ? Number(categoryId) : null,
+      });
     } catch (err) {
       setError(err.message || "Could not save the note.");
     }
@@ -47,6 +50,21 @@ function NoteFormModal({ initialNote, onSave, onClose, saving }) {
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
+          </div>
+          <div className="field">
+            <label htmlFor="note-category">Category</label>
+            <select
+              id="note-category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">No category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
           {error && <p className="form-error">{error}</p>}
           <div className="modal-actions">

@@ -123,7 +123,8 @@
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
@@ -133,7 +134,8 @@
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   outline: none;
   border-color: var(--accent);
   background: var(--surface);
@@ -400,6 +402,106 @@
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--shadow-md);
+}
+
+.category-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto 24px;
+}
+
+.category-chip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.category-chip {
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.category-chip:hover {
+  border-color: var(--accent);
+}
+
+.category-chip.active {
+  background: var(--gradient-brand);
+  border-color: transparent;
+  color: #fff;
+}
+
+.category-chip-delete {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border-radius: 50%;
+}
+
+.category-chip-delete:hover {
+  color: var(--danger);
+}
+
+.category-add-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-add-form input {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.category-add-form button {
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.category-add-form button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.category-add-form button:disabled {
+  opacity: 0.5;
+}
+
+.note-card-category {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .notes-status {
