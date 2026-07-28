@@ -415,6 +415,17 @@
   margin: 0 auto 24px;
 }
 
+.tag-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto 28px;
+}
+
 .category-chip-wrap {
   position: relative;
   display: inline-flex;
@@ -463,7 +474,21 @@
   gap: 6px;
 }
 
+.tag-add-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .category-add-form input {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.tag-add-form input {
   padding: 8px 14px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
@@ -482,13 +507,54 @@
   font-weight: 700;
 }
 
+.tag-add-form button {
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(8, 145, 178, 0.18);
+  color: #0e7490;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .category-add-form button:hover:not(:disabled) {
   background: var(--accent);
   color: #fff;
 }
 
+.tag-add-form button:hover:not(:disabled) {
+  background: #0e7490;
+  color: #fff;
+}
+
 .category-add-form button:disabled {
   opacity: 0.5;
+}
+
+.tag-add-form button:disabled {
+  opacity: 0.5;
+}
+
+.tag-chip {
+  border: 1.5px dashed rgba(8, 145, 178, 0.45);
+  background: rgba(8, 145, 178, 0.07);
+  color: #0e7490;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tag-chip:hover {
+  border-color: #0891b2;
+}
+
+.tag-chip.active {
+  background: #0e7490;
+  border-color: #0e7490;
+  color: #fff;
 }
 
 .note-card-category {
@@ -551,6 +617,22 @@
 .note-card h3 {
   font-size: 17px;
   word-break: break-word;
+}
+
+.note-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.note-card-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(8, 145, 178, 0.1);
+  color: #0e7490;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .note-card p {

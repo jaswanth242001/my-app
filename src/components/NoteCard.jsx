@@ -16,6 +16,15 @@ function NoteCard({ note, onEdit, onDelete }) {
       {note.categoryName && (
         <span className="note-card-category">{note.categoryName}</span>
       )}
+      {Array.isArray(note.tags) && note.tags.length > 0 && (
+        <div className="note-card-tags">
+          {note.tags.map((tag) => (
+            <span key={tag.id ?? tag.tagId} className="note-card-tag">
+              #{tag.name}
+            </span>
+          ))}
+        </div>
+      )}
       <h3>{note.title}</h3>
       <p>{note.content}</p>
       <div className="note-card-actions">

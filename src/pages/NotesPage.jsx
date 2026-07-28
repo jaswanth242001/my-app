@@ -6,20 +6,26 @@ import NoteFormModal from "../components/NoteFormModal";
 
 function NotesPage() {
   const {
-    notes,
     visibleNotes,
+    availableTags,
     loading,
     error,
     searchTerm,
     setSearchTerm,
     creating,
+    creatingTag,
+    tagging,
     updating,
     activeFilter,
     createNote,
     updateNote,
     deleteNote,
+    createTag,
     assignCategoryToNote,
+    assignTagToNote,
+    removeTagFromNote,
     filterByCategory,
+    filterByTag,
     clearFilter,
   } = useNotes();
 
@@ -33,6 +39,7 @@ function NotesPage() {
   const [editingNote, setEditingNote] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newTagName, setNewTagName] = useState("");
 
   const openCreate = () => {
     setEditingNote(null);
@@ -49,7 +56,42 @@ function NotesPage() {
     setEditingNote(null);
   };
 
-  const handleSave = async ({ title, content, categoryId }) => {
+  const resolveTagByName = async (name) => {
+    const key = name.toLowerCase();
+    const existing = availableTags.find((tag) => tag.name.toLowerCase() === key);
+    if (existing) return existing;
+    return createTag(name);
+  };
+
+  const syncTagsForNote = async (noteId, currentTags, desiredTagNames) => {
+    const desiredTags = [];
+    for (const tagName of desiredTagNames) {
+      // Create missing tags first, then assign to this note.
+      const resolved = await resolveTagByName(tagName);
+      if (resolved?.id != null) desiredTags.push(resolved);
+    }
+
+    const currentById = new Map(
+      (currentTags || [])
+        .map((tag) => [tag?.id ?? tag?.tagId, tag])
+        .filter(([id]) => id != null)
+    );
+    const desiredById = new Map(desiredTags.map((tag) => [tag.id, tag]));
+
+    for (const [id, tag] of desiredById) {
+      if (!currentById.has(id)) {
+        await assignTagToNote(noteId, tag);
+      }
+    }
+
+    for (const id of currentById.keys()) {
+      if (!desiredById.has(id)) {
+        await removeTagFromNote(noteId, id);
+      }
+    }
+  };
+
+  const handleSave = async ({ title, content, categoryId, tagNames }) => {
     if (editingNote) {
       const id = editingNote.id ?? editingNote.noteId;
       await updateNote({ id, title, content });
@@ -57,11 +99,15 @@ function NotesPage() {
       if (categoryId !== currentCategoryId) {
         await assignCategoryToNote(id, categoryId);
       }
+
+      await syncTagsForNote(id, editingNote.tags || [], tagNames || []);
     } else {
       const created = await createNote({ title, content });
+      const createdId = created.id ?? created.noteId;
       if (categoryId) {
-        await assignCategoryToNote(created.id ?? created.noteId, categoryId);
+        await assignCategoryToNote(createdId, categoryId);
       }
+      await syncTagsForNote(createdId, [], tagNames || []);
     }
     closeForm();
   };
@@ -84,6 +130,18 @@ function NotesPage() {
       setNewCategoryName("");
     } catch {
       // error already surfaced via `categoriesError` state
+    }
+  };
+
+  const handleCreateTag = async (e) => {
+    e.preventDefault();
+    const name = newTagName.trim();
+    if (!name) return;
+    try {
+      await createTag(name);
+      setNewTagName("");
+    } catch {
+      // error already surfaced via `error` state from useNotes
     }
   };
 
@@ -125,7 +183,36 @@ function NotesPage() {
         </form>
       </div>
 
+      <div className="tag-bar">
+        {availableTags.map((tag) => (
+          <button
+            key={tag.id}
+            type="button"
+            className={`tag-chip ${
+              activeFilter?.type === "tag" && activeFilter.value === tag.id
+                ? "active"
+                : ""
+            }`}
+            onClick={() => filterByTag(tag.id)}
+          >
+            #{tag.name}
+          </button>
+        ))}
+
+        <form className="tag-add-form" onSubmit={handleCreateTag}>
+          <input
+            placeholder="New tag"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+          />
+          <button type="submit" disabled={creatingTag || !newTagName.trim()}>
+            +
+          </button>
+        </form>
+      </div>
+
       {categoriesError && <p className="form-error">{categoriesError}</p>}
+      {tagging && <p className="notes-status">Updating tags...</p>}
 
       <div className="notes-toolbar">
         <input
@@ -165,6 +252,7 @@ function NotesPage() {
           key={editingNote?.id ?? editingNote?.noteId ?? "new"}
           initialNote={editingNote}
           categories={categories}
+          availableTags={availableTags}
           onSave={handleSave}
           onClose={closeForm}
           saving={creating || updating}
